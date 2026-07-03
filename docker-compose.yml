@@ -3,21 +3,21 @@ version: '3.8'
 services:
   app:
     build: .
-    container_name: infrabase_app
+    container_name: infrabase_app      # Matches your Caddyfile!
     restart: unless-stopped
     command: python manage.py runserver 0.0.0.0:5000
     volumes:
       - .:/app
     environment:
       - DJANGO_SECRET_KEY=change-this-in-prod
-      - DEBUG=True
+      - DEBUG=True                     # Set to False in production
       - DB_HOST=infrabase_db
       - DB_NAME=infrabase_db
       - DB_USER=infrabase_user
       - DB_PASS=supersecretpassword
     networks:
-      - web_network
-      - infrabase_internal
+      - web_network                    # Connects to Caddy Mothership
+      - infrabase_internal             # Connects to MySQL privately
     depends_on:
       - db
 
@@ -33,11 +33,11 @@ services:
     volumes:
       - infrabase_mysql_data:/var/lib/mysql
     networks:
-      - infrabase_internal
+      - infrabase_internal             # Private network ONLY
 
 networks:
   web_network:
-    external: true
+    external: true                     # Uses your existing Caddy network
   infrabase_internal:
 
 volumes:

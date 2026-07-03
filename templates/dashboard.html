@@ -13,8 +13,8 @@
         <div class="card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <small class="text-muted">Employee Directory</small>
-                    <h3 class="mb-0">142</h3>
+                    <small class="text-muted">Active Employees</small>
+                    <h3 class="mb-0">{{ employee_count }}</h3>
                 </div>
                 <div class="stat-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6;">
                     <i class="fas fa-users"></i>
@@ -27,7 +27,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <small class="text-muted">Hardware Assets</small>
-                    <h3 class="mb-0">89</h3>
+                    <h3 class="mb-0">{{ hardware_count }}</h3>
                 </div>
                 <div class="stat-icon" style="background:rgba(234,179,8,0.15);color:#eab308;">
                     <i class="fas fa-laptop"></i>
@@ -40,7 +40,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <small class="text-muted">Healthy Services</small>
-                    <h3 class="mb-0">12/12</h3>
+                    <h3 class="mb-0">{{ healthy_count }}/{{ services|length }}</h3>
                 </div>
                 <div class="stat-icon" style="background:rgba(34,197,94,0.15);color:#22c55e;">
                     <i class="fas fa-heartbeat"></i>
@@ -50,12 +50,33 @@
     </div>
 </div>
 
-<div class="card p-4">
-    <h5 class="mb-3"><i class="fas fa-plug me-2"></i>REST API Endpoints</h5>
-    <table class="table table-sm table-borderless mb-0" style="color: #e2e8f0;">
-        <tr><td><code class="text-info">GET /api/employees/</code></td><td>Employee Directory</td></tr>
-        <tr><td><code class="text-info">GET /api/hardware/</code></td><td>Hardware Tracker</td></tr>
-        <tr><td><code class="text-info">GET /api/servicehealth/</code></td><td>System Health</td></tr>
-    </table>
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="mb-3"><i class="fas fa-plug me-2"></i>REST API Endpoints</h5>
+            <table class="table table-sm table-borderless mb-0" style="color: #e2e8f0;">
+                <tr><td><code class="text-info">GET /api/employees/list/</code></td><td>Employee Directory</td></tr>
+                <tr><td><code class="text-info">GET /api/employees/departments/</code></td><td>Departments</td></tr>
+                <tr><td><code class="text-info">GET /api/hardware/assets/</code></td><td>Hardware Tracker</td></tr>
+                <tr><td><code class="text-info">GET /api/health/services/</code></td><td>System Health</td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="mb-3"><i class="fas fa-user-plus me-2"></i>Recent Employees</h5>
+            <table class="table table-sm table-borderless mb-0" style="color: #e2e8f0;">
+                {% for emp in recent_employees %}
+                <tr>
+                    <td>{{ emp.first_name }} {{ emp.last_name }}</td>
+                    <td>{{ emp.get_role_display }}</td>
+                    <td><span class="badge bg-{% if emp.status == 'active' %}success{% elif emp.status == 'remote' %}info{% else %}warning{% endif %}">{{ emp.get_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td class="text-muted">No employees yet</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

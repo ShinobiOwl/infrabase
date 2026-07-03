@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: infrabase_app
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:5000
+    volumes:
+      - .:/app
+    environment:
+      - DJANGO_SECRET_KEY=change-this-in-prod
+      - DEBUG=True
+      - DB_HOST=infrabase_db
+      - DB_NAME=infrabase_db
+      - DB_USER=infrabase_user
+      - DB_PASS=supersecretpassword
+    networks:
+      - web_network
+      - infrabase_internal
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: infrabase_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: infrabase_db
+      MYSQL_USER: infrabase_user
+      MYSQL_PASSWORD: supersecretpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - infrabase_mysql_data:/var/lib/mysql
+    networks:
+      - infrabase_internal
+
+networks:
+  web_network:
+    external: true
+  infrabase_internal:
+
+volumes:
+  infrabase_mysql_data:

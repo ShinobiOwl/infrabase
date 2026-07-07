@@ -1,7 +1,9 @@
 import os
+import sys
 import django
 
 # Setup Django inside the container
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'infrabase_project.settings')
 django.setup()
 

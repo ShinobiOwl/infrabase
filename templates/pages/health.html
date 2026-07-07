@@ -5,9 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <span class="section-title"><i class="fas fa-heartbeat text-success me-2"></i> Service Health</span>
-    <div class="d-flex gap-2">
-        <span class="badge bg-success rounded-pill">{{ services|length }} Services</span>
-    </div>
+    <span class="badge bg-success rounded-pill">{{ services|length }} Services</span>
 </div>
 
 <div class="card mb-4">
@@ -39,13 +37,96 @@
                         </div>
                     </td>
                     <td><span style="font-weight:600;">{{ svc.uptime_percentage }}%</span></td>
-                    <td><span class="badge-status badge-{{ svc.status }}">{{ svc.status }}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="openUpdateModal({{ svc.id }}, '{{ svc.status }}', {{ svc.response_time_ms }})" style="padding:0.2rem 0.6rem;font-size:0.75rem;">
+                            <i class="fas fa-edit"></i> Update
+                        </button>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="5"><div class="empty-state"><i class="fas fa-heartbeat"></i><p>No services registered.</p></div></td></tr>
                 {% endfor %}
             </tbody>
-        </table>
+</table>
     </div>
 </div>
+
+<!-- Update Service Status Modal -->
+<div class="modal fade" id="updateServiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);">
+            <div class="modal-header" style="border-bottom-color:var(--border-color);">
+                <h5 class="modal-title">Update Service Status</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="updateServiceForm" onsubmit="submitServiceUpdate(event)">
+                <div class="modal-body">
+                    <input type="hidden" name="service_id" id="serviceId">
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="serviceStatus" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            <option value="Healthy">Healthy</option>
+                            <option value="Degraded">Degraded</option>
+                            <option value="Down">Down</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Response Time (ms)</label>
+                        <input type="number" class="form-control" name="response_time" id="serviceResponseTime" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top-color:var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openUpdateModal(serviceId, currentStatus, currentResponseTime) {
+    document.getElementById('serviceId').value = serviceId;
+    document.getElementById('serviceStatus').value = currentStatus;
+    document.getElementById('serviceResponseTime').value = currentResponseTime;
+    new bootstrap.Modal(document.getElementById('updateServiceModal')).show();
+}
+
+async function submitServiceUpdate(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    try {
+        const resp = await fetch('/api/update-service/', {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            body: formData
+        });
+        
+        if (resp.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to update service');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %}

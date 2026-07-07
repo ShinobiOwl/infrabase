@@ -5,7 +5,9 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <span class="section-title"><i class="fas fa-laptop text-warning me-2"></i> Hardware Assets</span>
-    <span style="font-size:0.85rem;color:var(--text-secondary);">{{ assets|length }} total assets</span>
+    <button class="btn btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addHardwareModal">
+        <i class="fas fa-plus me-1"></i> Add Asset
+    </button>
 </div>
 
 <div class="card">
@@ -45,10 +47,101 @@
                     <td style="font-size:0.8rem;">{{ asset.warranty_expiry }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-laptop"></i><p>No hardware assets found.</p></div></td></tr>
-                {% endfor %}
+<tr><td colspan="7"><div class="empty-state"><i class="fas fa-laptop"></i><p>No hardware assets found.</p></div></td></tr>
+{% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<!-- Add Hardware Modal -->
+<div class="modal fade" id="addHardwareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);">
+            <div class="modal-header" style="border-bottom-color:var(--border-color);">
+                <h5 class="modal-title">Add Hardware Asset</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addHardwareForm" onsubmit="submitHardware(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Asset ID *</label>
+                        <input type="text" class="form-control" name="asset_id" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type *</label>
+                        <select class="form-select" name="asset_type" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            <option value="laptop">Laptop</option>
+                            <option value="monitor">Monitor</option>
+                            <option value="phone">Phone</option>
+                            <option value="tablet">Tablet</option>
+                            <option value="server">Server</option>
+                            <option value="printer">Printer</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Manufacturer *</label>
+                        <input type="text" class="form-control" name="manufacturer" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Model *</label>
+                        <input type="text" class="form-control" name="model" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            <option value="available">Available</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="in_repair">In Repair</option>
+                            <option value="retired">Retired</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top-color:var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+async function submitHardware(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    try {
+        const resp = await fetch('/api/add-hardware/', {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            body: formData
+        });
+        
+        if (resp.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to add hardware asset');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 {% endblock %}

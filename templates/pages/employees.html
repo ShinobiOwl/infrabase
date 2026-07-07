@@ -5,17 +5,12 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <span class="section-title"><i class="fas fa-users text-info me-2"></i> Employee Directory</span>
-    <div class="d-flex gap-2">
-        <select class="form-select form-select-sm" id="deptFilter" onchange="filterEmployees()" style="width:auto;background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
-            <option value="">All Departments</option>
-            {% for dept in departments %}
-            <option value="{{ dept.name }}">{{ dept.name }}</option>
-            {% endfor %}
-        </select>
-    </div>
+    <button class="btn btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+        <i class="fas fa-plus me-1"></i> Add Employee
+    </button>
 </div>
 
-<div class="card">
+<div class="card mb-4">
     <div class="card-body p-0">
         <table class="table" id="employees-table">
             <thead>
@@ -58,20 +53,135 @@
                 <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users"></i><p>No employees found.</p></div></td></tr>
                 {% endfor %}
             </tbody>
-        </table>
+</table>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-color);color:var(--text-primary);">
+            <div class="modal-header" style="border-bottom-color:var(--border-color);">
+                <h5 class="modal-title">Add New Employee</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addEmployeeForm" onsubmit="submitEmployee(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" class="form-control" name="first_name" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" class="form-control" name="last_name" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department *</label>
+                        <select class="form-select" name="department" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role *</label>
+                        <select class="form-select" name="role" required style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            <option value="developer">Developer</option>
+                            <option value="senior_developer">Senior Developer</option>
+                            <option value="tech_lead">Tech Lead</option>
+                            <option value="devops_engineer">DevOps Engineer</option>
+                            <option value="qa_engineer">QA Engineer</option>
+                            <option value="product_manager">Product Manager</option>
+                            <option value="engineering_manager">Engineering Manager</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" name="status" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">
+                            <option value="active">Active</option>
+                            <option value="on_leave">On Leave</option>
+                            <option value="remote">Remote</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top-color:var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background:var(--bg-dark);border:1px solid var(--border-color);color:var(--text-primary);">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Employee</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-function filterEmployees() {
-    const dept = document.getElementById('deptFilter').value.toLowerCase();
-    const rows = document.querySelectorAll('#employees-table tbody tr');
-    rows.forEach(row => {
-        const deptCell = row.querySelector('td:nth-child(2)');
-        if (!deptCell) return;
-        const deptName = deptCell.textContent.toLowerCase();
-        row.style.display = (!dept || deptName.includes(dept)) ? '' : 'none';
-    });
+async function submitEmployee(e) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const resp = await fetch('/api/add-employee/', {
+            method: 'POST',
+            headers: {'X-CSRFToken': getCookie('csrftoken')},
+            body: formData
+        });
+        
+        if (resp.ok) {
+            const result = await resp.json();
+            window.location.reload();
+        } else {
+            alert('Failed to add employee');
+        }
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 </script>
 {% endblock %}
+</content>
+<task_progress>
+- [x] Read and analyze Django settings files
+- [x] Identify configuration issues
+- [x] Fix settings.py for production deployment
+- [x] Update Jenkinsfile to set ALLOWED_HOSTS
+- [x] Verify Docker compatibility
+- [x] Add MySQL health check to Jenkinsfile
+- [x] Create docker/ai_service.py
+- [x] Create docker/Flask.Dockerfile
+- [x] Remove unused docker/requirements.txt
+- [x] Create docker/Django.Dockerfile
+- [x] Update Jenkinsfile to use docker/Django.Dockerfile
+- [x] Push to GitHub
+- [x] Remove Flask AI steps from Jenkinsfile (now running persistently on VM)
+- [x] Push updated Jenkinsfile to GitHub
+- [x] Fix Groovy GString escaping in Jenkinsfile
+- [x] Create seed_data/seed.py
+- [x] Fix seed.py Python path issue
+- [x] Redesign dashboard with professional UI
+- [x] Create dark-themed DRF API template
+- [x] Add HTMX live-update dashboard
+- [x] Fix DRF API template 500 error
+- [x] Create custom HTML pages for employees/hardware/health
+- [x] Update sidebar nav to point to new pages
+- [ ] Add forms and CRUD functionality to pages
+</task_progress>

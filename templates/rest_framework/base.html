@@ -1,124 +1,108 @@
+{# Minimal DRF theme override - just CSS, no structural changes #}
 {% extends "rest_framework/base.html" %}
-{% load i18n %}
 
 {% block title %}InfraBase API{% endblock %}
 
 {% block style %}
 {{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <style>
-    :root {
-        --bg-dark: #0a0e1a;
-        --bg-card: #111827;
-        --border-color: #1f2937;
-        --text-primary: #f1f5f9;
-        --text-secondary: #64748b;
-        --accent-blue: #3b82f6;
-        --accent-green: #22c55e;
-        --accent-yellow: #eab308;
-        --accent-red: #ef4444;
-    }
-    body { 
-        background: var(--bg-dark) !important; 
-        color: var(--text-primary) !important; 
-        font-family: 'Segoe UI', system-ui, sans-serif !important;
-        padding-top: 60px !important;
-    }
-    .navbar { 
-        background: #0d1117 !important; 
-        border-bottom: 1px solid var(--border-color) !important; 
-    }
-    .navbar .navbar-brand, .navbar .navbar-link { 
-        color: var(--text-primary) !important; 
-    }
-    .navbar .navbar-text {
-        color: var(--text-secondary) !important;
-    }
-    .page-header { 
-        background: var(--bg-card) !important; 
-        border: 1px solid var(--border-color) !important; 
-        border-radius: 12px; padding: 1.25rem; 
-    }
-    .page-header h1 { color: var(--text-primary) !important; font-size: 1.5rem; margin: 0; }
-    .well { 
-        background: var(--bg-card) !important; 
-        border: 1px solid var(--border-color) !important; 
-        border-radius: 12px; box-shadow: none !important; 
-    }
-    .list-group-item { 
-        background: var(--bg-card) !important; 
-        border: 1px solid var(--border-color) !important; 
-        color: var(--text-primary) !important; 
-    }
-    .list-group-item:hover { background: rgba(59,130,246,0.08) !important; }
-    pre { 
-        background: #1a1a2e !important; 
-        border: 1px solid var(--border-color) !important; 
-        color: var(--text-primary) !important; 
-        border-radius: 8px; 
-    }
-    .btn-primary { background: var(--accent-blue) !important; border-color: var(--accent-blue) !important; }
-    .btn-info { background: rgba(59,130,246,0.15) !important; border-color: var(--border-color) !important; color: var(--accent-blue) !important; }
-    .btn-danger { background: rgba(239,68,68,0.15) !important; border-color: var(--border-color) !important; color: var(--accent-red) !important; }
-    .btn-warning { background: rgba(234,179,8,0.15) !important; border-color: var(--border-color) !important; color: var(--accent-yellow) !important; }
-    table.table { color: var(--text-primary) !important; }
-    table.table th { 
-        border-bottom: 1px solid var(--border-color) !important; 
-        color: var(--text-secondary) !important; 
-        text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; 
-    }
-    table.table td { border-bottom: 1px solid var(--border-color) !important; }
-    .nav-tabs { border-bottom-color: var(--border-color) !important; }
-    .nav-tabs > li > a { color: var(--text-secondary) !important; border: none !important; background: transparent !important; }
-    .nav-tabs > li.active > a { 
-        color: var(--accent-blue) !important; 
-        background: var(--bg-card) !important; 
-        border: 1px solid var(--border-color) !important; 
-        border-bottom-color: var(--bg-card) !important; 
-    }
-    .form-control, select, textarea, input { 
-        background: var(--bg-dark) !important; 
-        border: 1px solid var(--border-color) !important; 
-        color: var(--text-primary) !important; 
-        border-radius: 8px; 
-    }
-    .form-control:focus { border-color: var(--accent-blue) !important; }
-    .alert-success { background: rgba(34,197,94,0.15) !important; border-color: rgba(34,197,94,0.3) !important; color: #4ade80 !important; }
-    .alert-danger { background: rgba(239,68,68,0.15) !important; border-color: rgba(239,68,68,0.3) !important; color: #f87171 !important; }
-    .alert-info { background: rgba(59,130,246,0.15) !important; border-color: rgba(59,130,246,0.3) !important; color: #60a5fa !important; }
-    .dropdown-menu { background: var(--bg-card) !important; border: 1px solid var(--border-color) !important; }
-    .dropdown-menu > li > a { color: var(--text-primary) !important; }
-    .dropdown-menu > li > a:hover { background: rgba(59,130,246,0.08) !important; }
-    a { color: var(--accent-blue) !important; }
-    code { color: #f472b6 !important; background: rgba(244,114,182,0.1) !important; padding: 2px 6px; border-radius: 4px; }
-    .str { color: #4ade80 !important; }
-    .lit, .num { color: #facc15 !important; }
-    .pln, .pun { color: var(--text-primary) !important; }
-    .atn { color: #60a5fa !important; }
-    .atv { color: #f472b6 !important; }
-    .tag { color: #f87171 !important; }
-    .modal-content { background: var(--bg-card) !important; border: 1px solid var(--border-color) !important; }
-    .modal-header, .modal-footer { border-color: var(--border-color) !important; }
-    hr { border-top-color: var(--border-color) !important; }
-    .breadcrumb { background: transparent !important; }
-    .breadcrumb a { color: var(--accent-blue) !important; }
-    .breadcrumb .active { color: var(--text-secondary) !important; }
+body { 
+    background: #0a0e1a !important; 
+    color: #f1f5f9 !important; 
+    font-family: 'Segoe UI', system-ui, sans-serif !important; 
+}
+.navbar { background: #0d1117 !important; border-bottom: 1px solid #1f2937 !important; }
+.navbar-inverse .navbar-brand, .navbar-inverse .navbar-link { color: #f1f5f9 !important; }
+.navbar-inverse .navbar-text, .navbar-inverse .navbar-nav>li>a { color: #64748b !important; }
+.page-header { border-bottom-color: #1f2937 !important; color: #f1f5f9 !important; }
+.page-header h1 { color: #f1f5f9 !important; }
+.well { 
+    background: #111827 !important; 
+    border: 1px solid #1f2937 !important; 
+    border-radius: 12px !important; 
+    box-shadow: none !important; 
+}
+.list-group-item { 
+    background: #111827 !important; 
+    border: 1px solid #1f2937 !important; 
+    color: #f1f5f9 !important; 
+}
+.list-group-item:hover { background: rgba(59,130,246,0.08) !important; }
+pre {
+    background: #1a1a2e !important;
+    border: 1px solid #1f2937 !important;
+    color: #f1f5f9 !important;
+    border-radius: 8px !important;
+}
+.btn-primary { background: #3b82f6 !important; border-color: #3b82f6 !important; }
+.btn-info { background: rgba(59,130,246,0.15) !important; border: 1px solid #1f2937 !important; color: #60a5fa !important; }
+.btn-danger { background: rgba(239,68,68,0.15) !important; border: 1px solid #1f2937 !important; color: #f87171 !important; }
+.btn-warning { background: rgba(234,179,8,0.15) !important; border: 1px solid #1f2937 !important; color: #facc15 !important; }
+.table { color: #f1f5f9 !important; }
+.table>thead>tr>th { 
+    border-bottom: 1px solid #1f2937 !important; 
+    color: #64748b !important; 
+    text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; 
+}
+.table>tbody>tr>td { border-top: 1px solid #1f2937 !important; }
+a { color: #3b82f6 !important; }
+.nav-tabs { border-bottom-color: #1f2937 !important; }
+.nav-tabs>li>a { color: #64748b !important; }
+.nav-tabs>li.active>a { 
+    color: #3b82f6 !important; 
+    background: #111827 !important; 
+    border-color: #1f2937 !important; 
+    border-bottom-color: #111827 !important; 
+}
+.form-control, input, textarea, select { 
+    background: #0a0e1a !important; 
+    border: 1px solid #1f2937 !important; 
+    color: #f1f5f9 !important; 
+    border-radius: 8px !important; 
+}
+.form-control:focus { border-color: #3b82f6 !important; }
+.alert-success { background: rgba(34,197,94,0.15) !important; border-color: rgba(34,197,94,0.3) !important; color: #4ade80 !important; }
+.alert-danger { background: rgba(239,68,68,0.15) !important; border-color: rgba(239,68,68,0.3) !important; color: #f87171 !important; }
+code { color: #f472b6 !important; background: rgba(244,114,182,0.1) !important; padding: 2px 6px; border-radius: 4px; }
+.str { color: #4ade80 !important; }
+.lit, .num { color: #facc15 !important; }
+.pln, .pun { color: #f1f5f9 !important; }
+.atn { color: #60a5fa !important; }
+.atv { color: #f472b6 !important; }
+.tag { color: #f87171 !important; }
+.modal-content { background: #111827 !important; border: 1px solid #1f2937 !important; }
+.modal-header, .modal-footer { border-color: #1f2937 !important; }
+.dropdown-menu { background: #111827 !important; border: 1px solid #1f2937 !important; }
+.dropdown-menu>li>a { color: #f1f5f9 !important; }
+.dropdown-menu>li>a:hover { background: rgba(59,130,246,0.08) !important; }
+.breadcrumb { background: transparent !important; }
+.breadcrumb a { color: #3b82f6 !important; }
+.breadcrumb .active { color: #64748b !important; }
+hr { border-top-color: #1f2937 !important; }
 </style>
 {% endblock %}
-
-{% block branding %}
-<a class="navbar-brand" rel="nofollow" href="/" style="color: var(--text-primary); font-weight: 700;">
-    <i class="fas fa-server" style="color: var(--accent-blue); margin-right: 8px;"></i> InfraBase API
-</a>
-<a class="navbar-link" href="/" style="color: var(--text-secondary); margin-left: 15px;">
-    <i class="fas fa-arrow-left"></i> Dashboard
-</a>
-{% endblock %}
-
-{% block userlinks %}
-{{ block.super }}
-{% endblock %}
-
-{% block script %}
-{{ block.super }}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
-{% endblock %}
+</content>
+<task_progress>
+- [x] Read and analyze Django settings files
+- [x] Identify configuration issues
+- [x] Fix settings.py for production deployment
+- [x] Update Jenkinsfile to set ALLOWED_HOSTS
+- [x] Verify Docker compatibility
+- [x] Add MySQL health check to Jenkinsfile
+- [x] Create docker/ai_service.py
+- [x] Create docker/Flask.Dockerfile
+- [x] Remove unused docker/requirements.txt
+- [x] Create docker/Django.Dockerfile
+- [x] Update Jenkinsfile to use docker/Django.Dockerfile
+- [x] Push to GitHub
+- [x] Remove Flask AI steps from Jenkinsfile (now running persistently on VM)
+- [x] Push updated Jenkinsfile to GitHub
+- [x] Fix Groovy GString escaping in Jenkinsfile
+- [x] Create seed_data/seed.py
+- [x] Fix seed.py Python path issue
+- [x] Redesign dashboard with professional UI
+- [x] Create dark-themed DRF API template
+- [x] Add HTMX live-update dashboard
+- [ ] Fix DRF API template 500 error
+</task_progress>

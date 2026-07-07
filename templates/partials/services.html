@@ -1,0 +1,21 @@
+{% for svc in services %}
+<tr>
+    <td><strong>{{ svc.service_name }}</strong></td>
+    <td style="font-size:0.75rem;color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        <i class="fas fa-link me-1" style="font-size:0.6rem;"></i>{{ svc.url }}
+    </td>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            <div class="progress-thin flex-grow-1" style="width:60px;">
+                <div class="progress-bar {% if svc.response_time_ms < 50 %}bg-success{% elif svc.response_time_ms < 200 %}bg-warning{% else %}bg-danger{% endif %}" 
+                     style="width:{% widthratio svc.response_time_ms 500 100 %}%;"></div>
+            </div>
+            <span style="font-size:0.75rem;">{{ svc.response_time_ms }}ms</span>
+        </div>
+    </td>
+    <td><span style="font-weight:600;">{{ svc.uptime_percentage }}%</span></td>
+    <td><span class="badge-status badge-{{ svc.status }}">{{ svc.status }}</span></td>
+</tr>
+{% empty %}
+<tr><td colspan="5"><div class="empty-state"><i class="fas fa-heartbeat"></i><p>No services registered.</p></div></td></tr>
+{% endfor %}

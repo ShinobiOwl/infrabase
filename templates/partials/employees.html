@@ -1,0 +1,29 @@
+{% for emp in recent_employees %}
+<tr>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            <div class="avatar" style="background: {% cycle 'linear-gradient(135deg,#3b82f6,#8b5cf6)' 'linear-gradient(135deg,#22c55e,#16a34a)' 'linear-gradient(135deg,#eab308,#d97706)' 'linear-gradient(135deg,#ef4444,#dc2626)' 'linear-gradient(135deg,#a855f7,#7c3aed)' %}; color:white;">
+                {{ emp.first_name|first }}{{ emp.last_name|first }}
+            </div>
+            <div>
+                <strong style="font-size:0.85rem;">{{ emp.first_name }} {{ emp.last_name }}</strong>
+                <div style="font-size:0.7rem;color:var(--text-secondary);">{{ emp.email }}</div>
+            </div>
+        </div>
+    </td>
+    <td>{{ emp.department.name|default:"-" }}</td>
+    <td style="font-size:0.8rem;">{{ emp.get_role_display }}</td>
+    <td><span class="badge-status badge-{{ emp.status }}">{{ emp.get_status_display }}</span></td>
+    <td>
+        {% if emp.github_username %}
+        <a href="https://github.com/{{ emp.github_username }}" target="_blank" style="color:var(--text-secondary);text-decoration:none;">
+            <i class="fab fa-github"></i> {{ emp.github_username }}
+        </a>
+        {% else %}
+        <span style="color:var(--text-secondary);font-size:0.75rem;">—</span>
+        {% endif %}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="5"><div class="empty-state"><i class="fas fa-users"></i><p>No employees yet.</p></div></td></tr>
+{% endfor %}

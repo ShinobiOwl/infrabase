@@ -3,57 +3,30 @@
 {% block breadcrumb %}<li>Dashboard</li>{% endblock %}
 
 {% block content %}
-<!-- Stats Row -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="icon-wrap" style="background: rgba(59,130,246,0.15); color: #60a5fa;">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-value">{{ employee_count }}</div>
-            <div class="stat-label">Active Employees</div>
-            <div class="stat-change text-success"><i class="fas fa-arrow-up me-1"></i>{{ department_count }} departments</div>
-        </div>
+<!-- HTMX Stats (auto-refreshes every 30s) -->
+<div id="stats-container" hx-get="/htmx/stats/" hx-trigger="load, every30s" hx-swap="innerHTML">
+    {% include 'partials/stats.html' %}
+</div>
+
+<!-- Charts Row + Refresh Button -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <span class="section-title"><i class="fas fa-chart-line text-primary me-2"></i> Live Analytics</span>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="icon-wrap" style="background: rgba(168,85,247,0.15); color: #c084fc;">
-                <i class="fas fa-building"></i>
-            </div>
-            <div class="stat-value">{{ department_count }}</div>
-            <div class="stat-label">Departments</div>
-            <div class="stat-change"><span class="text-info">{{ recent_employees|length }}</span> new hires</div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="icon-wrap" style="background: rgba(234,179,8,0.15); color: #facc15;">
-                <i class="fas fa-laptop"></i>
-            </div>
-            <div class="stat-value">{{ hardware_count }}</div>
-            <div class="stat-label">Hardware Assets</div>
-            <div class="stat-change"><span class="text-warning">{{ assigned_hardware }}</span> assigned</div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="icon-wrap" style="background: rgba(34,197,94,0.15); color: #4ade80;">
-                <i class="fas fa-heartbeat"></i>
-            </div>
-            <div class="stat-value">{{ healthy_count }}/{{ services.count }}</div>
-            <div class="stat-label">Services Healthy</div>
-            <div class="stat-change">{% if healthy_count == services.count %}<span class="text-success">All operational</span>{% else %}<span class="text-warning">{{ services.count|add:"-healthy_count" }} degraded</span>{% endif %}</div>
-        </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary-custom btn-sm" onclick="refreshCharts()">
+            <i class="fas fa-sync-alt me-1"></i> Refresh Charts
+        </button>
+        <span id="last-update" style="font-size:0.75rem;color:var(--text-secondary);align-self:center;"></span>
     </div>
 </div>
 
-<!-- Charts Row -->
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-chart-bar text-primary"></i> Service Health Overview
-                <span class="ms-auto badge bg-success rounded-pill">{{ healthy_count }} Healthy</span>
+                <span class="ms-auto badge bg-success rounded-pill" id="healthy-badge">{{ healthy_count }} Healthy</span>
             </div>
             <div class="card-body">
                 <canvas id="healthChart" height="220"></canvas>
@@ -72,15 +45,18 @@
     </div>
 </div>
 
-<!-- Recent Employees + Quick Actions -->
+<!-- Recent Employees (auto-refreshes every 30s) -->
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-user-plus text-info"></i> Recent Hires
-                <a href="/api/employees/list/" class="ms-auto text-decoration-none" style="font-size:0.8rem;color:var(--accent-blue);">
-                    View All <i class="fas fa-arrow-right ms-1"></i>
-                </a>
+                <span class="ms-auto d-flex gap-2">
+                    <span style="font-size:0.75rem;color:var(--text-secondary);" id="employee-count-badge">{{ employee_count }} active</span>
+                    <a href="/api/employees/list/" class="text-decoration-none" style="font-size:0.8rem;color:var(--accent-blue);">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </span>
             </div>
             <div class="card-body p-0">
                 <table class="table">
@@ -93,36 +69,8 @@
                             <th>GitHub</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for emp in recent_employees %}
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar" style="background: {% cycle 'linear-gradient(135deg,#3b82f6,#8b5cf6)' 'linear-gradient(135deg,#22c55e,#16a34a)' 'linear-gradient(135deg,#eab308,#d97706)' 'linear-gradient(135deg,#ef4444,#dc2626)' 'linear-gradient(135deg,#a855f7,#7c3aed)' %}; color:white;">
-                                        {{ emp.first_name|first }}{{ emp.last_name|first }}
-                                    </div>
-                                    <div>
-                                        <strong style="font-size:0.85rem;">{{ emp.first_name }} {{ emp.last_name }}</strong>
-                                        <div style="font-size:0.7rem;color:var(--text-secondary);">{{ emp.email }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ emp.department.name|default:"-" }}</td>
-                            <td style="font-size:0.8rem;">{{ emp.get_role_display }}</td>
-                            <td><span class="badge-status badge-{{ emp.status }}">{{ emp.get_status_display }}</span></td>
-                            <td>
-                                {% if emp.github_username %}
-                                <a href="https://github.com/{{ emp.github_username }}" target="_blank" style="color:var(--text-secondary);text-decoration:none;">
-                                    <i class="fab fa-github"></i> {{ emp.github_username }}
-                                </a>
-                                {% else %}
-                                <span style="color:var(--text-secondary);font-size:0.75rem;">—</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users"></i><p>No employees yet. Run the seed script to populate data.</p></div></td></tr>
-                        {% endfor %}
+                    <tbody id="employees-tbody" hx-get="/htmx/employees/" hx-trigger="load, every30s" hx-swap="innerHTML">
+                        {% include 'partials/employees.html' %}
                     </tbody>
                 </table>
             </div>
@@ -147,17 +95,25 @@
                     <a href="/api/health/services/" class="btn btn-primary-custom text-start" style="background:rgba(34,197,94,0.15);color:#4ade80;">
                         <i class="fas fa-heartbeat me-2"></i> Service Health
                     </a>
+                    <button class="btn btn-primary-custom text-start" style="background:rgba(239,68,68,0.15);color:#f87171;" onclick="simulateIncident()">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Simulate Incident
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Service Health Table -->
+<!-- Service Health (auto-refreshes every 15s) -->
 <div class="card mb-4">
     <div class="card-header">
         <i class="fas fa-list text-success"></i> Service Health Status
-        <span class="ms-auto" style="font-size:0.75rem;color:var(--text-secondary);">Last checked: now</span>
+        <span class="ms-auto d-flex gap-3">
+            <span id="live-indicator" style="font-size:0.75rem;color:var(--accent-green);display:flex;align-items:center;gap:4px;">
+                <span class="status-dot green" style="animation:pulse 2s infinite;"></span> Live
+            </span>
+            <span style="font-size:0.75rem;color:var(--text-secondary);" id="service-check-time">Auto-refreshing</span>
+        </span>
     </div>
     <div class="card-body p-0">
         <table class="table">
@@ -170,94 +126,220 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for svc in services %}
-                <tr>
-                    <td><strong>{{ svc.service_name }}</strong></td>
-                    <td style="font-size:0.75rem;color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                        <i class="fas fa-link me-1" style="font-size:0.6rem;"></i>{{ svc.url }}
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="progress-thin flex-grow-1" style="width:60px;">
-                                <div class="progress-bar {% if svc.response_time_ms < 50 %}bg-success{% elif svc.response_time_ms < 200 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                     style="width:{% widthratio svc.response_time_ms 500 100 %}%;"></div>
-                            </div>
-                            <span style="font-size:0.75rem;">{{ svc.response_time_ms }}ms</span>
-                        </div>
-                    </td>
-                    <td><span style="font-weight:600;">{{ svc.uptime_percentage }}%</span></td>
-                    <td><span class="badge-status badge-{{ svc.status }}">{{ svc.status }}</span></td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-heartbeat"></i><p>No services registered.</p></div></td></tr>
-                {% endfor %}
+            <tbody id="services-tbody" hx-get="/htmx/services/" hx-trigger="load, every15s" hx-swap="innerHTML">
+                {% include 'partials/services.html' %}
             </tbody>
         </table>
     </div>
 </div>
 
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.stat-card {
+    transition: all 0.3s ease;
+}
+.stat-card.htmx-added {
+    opacity: 0;
+    transform: translateY(10px);
+}
+.htmx-count {
+    transition: all 0.3s ease;
+}
+#stats-container.htmx-request {
+    opacity: 0.6;
+    pointer-events: none;
+}
+.flash-green {
+    animation: flash-green 1s ease;
+}
+@keyframes flash-green {
+    0% { background-color: rgba(34,197,94,0.3); }
+    100% { background-color: transparent; }
+}
+.flash-red {
+    animation: flash-red 1s ease;
+}
+@keyframes flash-red {
+    0% { background-color: rgba(239,68,68,0.3); }
+    100% { background-color: transparent; }
+}
+</style>
+
 <script>
-// Health Chart
-const healthCtx = document.getElementById('healthChart').getContext('2d');
-const services = {{ services_json|safe }};
-new Chart(healthCtx, {
-    type: 'bar',
-    data: {
-        labels: services.map(s => s.name),
-        datasets: [{
-            label: 'Response Time (ms)',
-            data: services.map(s => s.response_time_ms),
-            backgroundColor: services.map(s => s.status === 'Healthy' ? 'rgba(34,197,94,0.6)' : s.status === 'Degraded' ? 'rgba(234,179,8,0.6)' : 'rgba(239,68,68,0.6)'),
-            borderColor: services.map(s => s.status === 'Healthy' ? '#22c55e' : s.status === 'Degraded' ? '#eab308' : '#ef4444'),
-            borderWidth: 1,
-            borderRadius: 4,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
+let healthChartInstance = null;
+let assetChartInstance = null;
+
+// Refresh charts on load and on demand
+async function refreshCharts() {
+    document.getElementById('last-update').textContent = 'Updating...';
+    
+    try {
+        // Fetch health chart data
+        const healthResp = await fetch('/htmx/chart/health/');
+        const healthData = await healthResp.json();
+        
+        // Fetch asset chart data
+        const assetResp = await fetch('/htmx/chart/assets/');
+        const assetData = await assetResp.json();
+        
+        // Update health chart
+        if (healthChartInstance) {
+            healthChartInstance.data.labels = healthData.map(s => s.name);
+            healthChartInstance.data.datasets[0].data = healthData.map(s => s.response_time_ms);
+            healthChartInstance.data.datasets[0].backgroundColor = healthData.map(s => 
+                s.status === 'Healthy' ? 'rgba(34,197,94,0.6)' : 
+                s.status === 'Degraded' ? 'rgba(234,179,8,0.6)' : 'rgba(239,68,68,0.6)'
+            );
+            healthChartInstance.data.datasets[0].borderColor = healthData.map(s => 
+                s.status === 'Healthy' ? '#22c55e' : 
+                s.status === 'Degraded' ? '#eab308' : '#ef4444'
+            );
+            healthChartInstance.update('none');
+        }
+        
+        // Update asset chart
+        if (assetChartInstance) {
+            assetChartInstance.data.datasets[0].data = [
+                assetData.assigned, assetData.available, assetData.in_repair
+            ];
+            assetChartInstance.update('none');
+        }
+        
+        // Update healthy badge
+        const healthyCount = healthData.filter(s => s.status === 'Healthy').length;
+        document.getElementById('healthy-badge').textContent = healthyCount + ' Healthy';
+        
+        const now = new Date();
+        document.getElementById('last-update').textContent = 'Updated ' + now.toLocaleTimeString();
+    } catch (e) {
+        document.getElementById('last-update').textContent = 'Update failed';
+        console.error('Chart refresh failed:', e);
+    }
+}
+
+// Simulate a service incident (for demo purposes)
+function simulateIncident() {
+    const services = document.querySelectorAll('#services-tbody tr');
+    if (services.length === 0) return;
+    
+    const randomIdx = Math.floor(Math.random() * services.length);
+    const row = services[randomIdx];
+    const statusBadge = row.querySelector('.badge-status');
+    const serviceName = row.querySelector('strong').textContent;
+    
+    // Visual flash
+    row.classList.add('flash-red');
+    setTimeout(() => row.classList.remove('flash-red'), 1000);
+    
+    // Show notification
+    showNotification('⚠️ Incident Simulated: ' + serviceName + ' status changed');
+}
+
+// Simple notification toast
+function showNotification(message) {
+    const existing = document.querySelector('.notification-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'notification-toast';
+    toast.innerHTML = message;
+    toast.style.cssText = `
+        position: fixed; bottom: 20px; right: 20px; 
+        background: var(--bg-card); border: 1px solid var(--accent-red);
+        color: var(--text-primary); padding: 12px 20px; border-radius: 12px;
+        z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Init charts on page load
+document.addEventListener('DOMContentLoaded', function () {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    `;
+    document.head.appendChild(style);
+    
+    // Health Chart
+    const healthCtx = document.getElementById('healthChart').getContext('2d');
+    const services = {{ services_json|safe }};
+    healthChartInstance = new Chart(healthCtx, {
+        type: 'bar',
+        data: {
+            labels: services.map(s => s.name),
+            datasets: [{
+                label: 'Response Time (ms)',
+                data: services.map(s => s.response_time_ms),
+                backgroundColor: services.map(s => s.status === 'Healthy' ? 'rgba(34,197,94,0.6)' : s.status === 'Degraded' ? 'rgba(234,179,8,0.6)' : 'rgba(239,68,68,0.6)'),
+                borderColor: services.map(s => s.status === 'Healthy' ? '#22c55e' : s.status === 'Degraded' ? '#eab308' : '#ef4444'),
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(255,255,255,0.05)' },
-                ticks: { color: '#64748b', font: { size: 11 } }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 30 }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#64748b', font: { size: 11 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 30 }
+                }
             }
         }
-    }
-});
+    });
 
-// Asset Chart
-const assetCtx = document.getElementById('assetChart').getContext('2d');
-new Chart(assetCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Assigned', 'Available', 'In Repair'],
-        datasets: [{
-            data: [{{ assigned_hardware }}, {{ hardware_count|add:"-assigned_hardware" }}, 0],
-            backgroundColor: ['rgba(34,197,94,0.7)', 'rgba(59,130,246,0.7)', 'rgba(234,179,8,0.7)'],
-            borderColor: ['#22c55e', '#3b82f6', '#eab308'],
-            borderWidth: 2,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { color: '#64748b', font: { size: 11 }, padding: 15 }
-            }
+    // Asset Chart
+    const assetCtx = document.getElementById('assetChart').getContext('2d');
+    assetChartInstance = new Chart(assetCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Assigned', 'Available', 'In Repair'],
+            datasets: [{
+                data: [{{ assigned_hardware }}, {{ hardware_count|add:"-assigned_hardware" }}, 0],
+                backgroundColor: ['rgba(34,197,94,0.7)', 'rgba(59,130,246,0.7)', 'rgba(234,179,8,0.7)'],
+                borderColor: ['#22c55e', '#3b82f6', '#eab308'],
+                borderWidth: 2,
+            }]
         },
-        cutout: '65%',
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#64748b', font: { size: 11 }, padding: 15 }
+                }
+            },
+            cutout: '65%',
+        }
+    });
+    
+    // Initial chart refresh
+    setTimeout(refreshCharts, 2000);
+    setInterval(refreshCharts, 30000);
+    
+    // Update service check time
+    function updateTime() {
+        document.getElementById('service-check-time').textContent = 
+            'Last check: ' + new Date().toLocaleTimeString();
     }
+    updateTime();
+    setInterval(updateTime, 15000);
 });
 </script>
 {% endblock %}

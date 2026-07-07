@@ -2,13 +2,8 @@ pipeline {
     agent any
     
     environment {
-        // Your correct Oracle Cloud Region
         OCI_REGION = "ap-singapore-1" 
-        
-        // Reads the Tenancy Namespace from Jenkins Credentials
         TENANCY_NS = credentials('oci-tenancy-ns') 
-        
-        // Formats the Image Name for Singapore OCIR
         IMAGE_NAME = "${OCI_REGION}.ocir.io/${TENANCY_NS}/infrabase"
     }
 
@@ -29,7 +24,6 @@ pipeline {
         stage('3. Push to OCI Registry (OCIR)') {
             steps {
                 echo 'Logging into Oracle Container Registry...'
-                // Uses the oci-creds (Username/Password) you added to Jenkins
                 withCredentials([usernamePassword(credentialsId: 'oci-creds', passwordVariable: 'OCI_PASS', usernameVariable: 'OCI_USER')]) {
                     sh "echo ${OCI_PASS} | docker login ${OCI_REGION}.ocir.io -u ${OCI_USER} --password-stdin"
                 }
@@ -43,8 +37,8 @@ pipeline {
         stage('4. Deploy to Oracle VM') {
             steps {
                 echo 'Deploying InfraBase to Production...'
-                sh """
-                    # Stop and remove the old Django container (|| true means "don't fail if it doesn't exist yet")
+                sh '''
+                    # Stop and remove the old Django container
                     docker stop infrabase_app || true
                     docker rm infrabase_app || true
                     
@@ -68,7 +62,7 @@ pipeline {
                     
                     # Wait for MySQL to be ready before running migrations
                     echo "Waiting for MySQL to be ready..."
-                    for i in \$(seq 1 30); do
+                    for i in $(seq 1 30); do
                         docker exec infrabase_app python -c "
 import MySQLdb
 try:
@@ -85,17 +79,17 @@ except Exception as e:
                     # Run database migrations
                     docker exec infrabase_app python manage.py migrate --noinput
                     docker exec infrabase_app python manage.py collectstatic --noinput
-                """
+                '''
             }
         }
     }
     
     post {
         success {
-            echo '🚀 PIPELINE SUCCESS: InfraBase is LIVE at infrabase.duckdns.org!'
+            echo 'Pipeline SUCCESS: InfraBase is LIVE at infrabase.duckdns.org!'
         }
         failure {
-            echo '❌ PIPELINE FAILED: Check Jenkins logs for errors.'
+            echo 'Pipeline FAILED: Check Jenkins logs for errors.'
         }
     }
 }

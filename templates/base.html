@@ -334,13 +334,13 @@
                 <i class="fas fa-th-large"></i><span>Dashboard</span>
                 {% if services|length > 0 %}<span class="badge bg-primary rounded-pill">{{ services|length }}</span>{% endif %}
             </a>
-            <a href="/api/employees/list/" class="nav-item {% if 'employees' in request.path %}active{% endif %}">
+            <a href="/employees/" class="nav-item {% if 'employees' in request.path %}active{% endif %}">
                 <i class="fas fa-users"></i><span>Employees</span>
             </a>
-            <a href="/api/hardware/assets/" class="nav-item {% if 'hardware' in request.path %}active{% endif %}">
+            <a href="/hardware/" class="nav-item {% if 'hardware' in request.path %}active{% endif %}">
                 <i class="fas fa-laptop"></i><span>Hardware</span>
             </a>
-            <a href="/api/health/services/" class="nav-item {% if 'health' in request.path %}active{% endif %}">
+            <a href="/services/" class="nav-item {% if 'health' in request.path or 'services' in request.path %}active{% endif %}">
                 <i class="fas fa-heartbeat"></i><span>Services</span>
             </a>
         </div>

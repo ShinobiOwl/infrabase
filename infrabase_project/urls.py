@@ -3,7 +3,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.template.loader import render_to_string
 from employees.models import Employee, Department
 from hardware.models import HardwareAsset
 from health.models import ServiceHealth
@@ -77,6 +76,33 @@ def htmx_asset_chart_data(request):
     })
 
 
+# Custom HTML pages (not JSON)
+def employees_page(request):
+    employees = Employee.objects.select_related('department').all()
+    departments = Department.objects.all()
+    context = {
+        'employees': employees,
+        'departments': departments,
+    }
+    return render(request, 'pages/employees.html', context)
+
+
+def hardware_page(request):
+    assets = HardwareAsset.objects.select_related('assigned_to').all()
+    context = {
+        'assets': assets,
+    }
+    return render(request, 'pages/hardware.html', context)
+
+
+def health_page(request):
+    services = ServiceHealth.objects.all()
+    context = {
+        'services': services,
+    }
+    return render(request, 'pages/health.html', context)
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', dashboard, name='dashboard'),
@@ -90,4 +116,9 @@ urlpatterns = [
     path('htmx/employees/', htmx_employees, name='htmx-employees'),
     path('htmx/chart/health/', htmx_health_chart_data, name='htmx-health-chart'),
     path('htmx/chart/assets/', htmx_asset_chart_data, name='htmx-asset-chart'),
+    
+    # Custom HTML pages
+    path('employees/', employees_page, name='employees-page'),
+    path('hardware/', hardware_page, name='hardware-page'),
+    path('services/', health_page, name='health-page'),
 ]

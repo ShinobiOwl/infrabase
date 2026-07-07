@@ -10,7 +10,6 @@ pipeline {
         
         // Formats the Image Name for Singapore OCIR
         IMAGE_NAME = "${OCI_REGION}.ocir.io/${TENANCY_NS}/infrabase"
-        FLASK_IMAGE_NAME = "${OCI_REGION}.ocir.io/${TENANCY_NS}/infrabase-flask"
     }
 
     stages {
@@ -20,13 +19,10 @@ pipeline {
             }
         }
         
-        stage('2. Build Docker Images') {
+        stage('2. Build Docker Image') {
             steps {
                 echo 'Building InfraBase Django App Image...'
                 sh "docker build -t ${IMAGE_NAME}:latest -t ${IMAGE_NAME}:${BUILD_NUMBER} -f docker/Django.Dockerfile ."
-                
-                echo 'Building InfraBase Flask AI Image...'
-                sh "docker build -t ${FLASK_IMAGE_NAME}:latest -t ${FLASK_IMAGE_NAME}:${BUILD_NUMBER} -f docker/Flask.Dockerfile ."
             }
         }
         
@@ -38,12 +34,9 @@ pipeline {
                     sh "echo ${OCI_PASS} | docker login ${OCI_REGION}.ocir.io -u ${OCI_USER} --password-stdin"
                 }
                 
-                echo 'Pushing images to the secure cloud pendrive...'
+                echo 'Pushing image to the secure cloud pendrive...'
                 sh "docker push ${IMAGE_NAME}:latest"
                 sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
-                
-                sh "docker push ${FLASK_IMAGE_NAME}:latest"
-                sh "docker push ${FLASK_IMAGE_NAME}:${BUILD_NUMBER}"
             }
         }
         
@@ -51,21 +44,9 @@ pipeline {
             steps {
                 echo 'Deploying InfraBase to Production...'
                 sh """
-                    # Stop and remove the old containers (|| true means "don't fail if they don't exist yet")
-                    docker stop infrabase_app infrabase_flask_ai || true
-                    docker rm infrabase_app infrabase_flask_ai || true
-                    
-                    # Run the NEW Flask AI Container
-                    docker run -d \
-                      --name infrabase_flask_ai \
-                      --restart unless-stopped \
-                      -e OLLAMA_URL=http://localgen_brain:11434 \
-                      -e OLLAMA_MODEL=gemma2:4b \
-                      --network web_network \
-                      ${FLASK_IMAGE_NAME}:latest
-                    
-                    # Connect Flask to the internal network so Django can find it
-                    docker network connect infrabase_internal infrabase_flask_ai || true
+                    # Stop and remove the old Django container (|| true means "don't fail if it doesn't exist yet")
+                    docker stop infrabase_app || true
+                    docker rm infrabase_app || true
                     
                     # Run the NEW Django App Container
                     docker run -d \
@@ -82,7 +63,7 @@ pipeline {
                       --network web_network \
                       ${IMAGE_NAME}:latest
                     
-                    # Connect Django to the internal network so it can reach MySQL
+                    # Connect Django to the internal network so it can reach MySQL and Flask AI
                     docker network connect infrabase_internal infrabase_app || true
                     
                     # Wait for MySQL to be ready before running migrations

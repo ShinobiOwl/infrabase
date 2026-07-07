@@ -1,0 +1,335 @@
+{% extends "rest_framework/rest_framework_base.html" %}
+
+{% block style %}
+{{ block.super }}
+<style>
+    :root {
+        --bg-dark: #0a0e1a;
+        --bg-card: #111827;
+        --bg-sidebar: #0d1117;
+        --border-color: #1f2937;
+        --text-primary: #f1f5f9;
+        --text-secondary: #64748b;
+        --accent-blue: #3b82f6;
+        --accent-green: #22c55e;
+        --accent-yellow: #eab308;
+        --accent-red: #ef4444;
+    }
+    body {
+        background: var(--bg-dark) !important;
+        color: var(--text-primary) !important;
+        font-family: 'Segoe UI', system-ui, sans-serif !important;
+    }
+    .navbar {
+        background: var(--bg-sidebar) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    .navbar .navbar-brand {
+        color: var(--text-primary) !important;
+        font-weight: 700 !important;
+    }
+    .navbar .navbar-text, .navbar .navbar-link {
+        color: var(--text-secondary) !important;
+    }
+    .page-header {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        padding: 1.25rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .page-header h1 {
+        color: var(--text-primary) !important;
+        font-size: 1.5rem !important;
+    }
+    .well {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+    .well .form-inline label {
+        color: var(--text-secondary) !important;
+    }
+    .list-group-item {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .list-group-item:hover {
+        background: rgba(59,130,246,0.08) !important;
+    }
+    .list-group-item.active {
+        background: var(--accent-blue) !important;
+        border-color: var(--accent-blue) !important;
+    }
+    .list-group-item .badge {
+        background: rgba(59,130,246,0.15) !important;
+        color: var(--accent-blue) !important;
+    }
+    .request-info {
+        color: var(--text-secondary) !important;
+    }
+    pre {
+        background: #1a1a2e !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 8px !important;
+    }
+    .btn-primary {
+        background: var(--accent-blue) !important;
+        border-color: var(--accent-blue) !important;
+    }
+    .btn-info {
+        background: rgba(59,130,246,0.15) !important;
+        border-color: var(--border-color) !important;
+        color: var(--accent-blue) !important;
+    }
+    .btn-danger {
+        background: rgba(239,68,68,0.15) !important;
+        border-color: var(--border-color) !important;
+        color: var(--accent-red) !important;
+    }
+    .btn-warning {
+        background: rgba(234,179,8,0.15) !important;
+        border-color: var(--border-color) !important;
+        color: var(--accent-yellow) !important;
+    }
+    .btn {
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+    }
+    table.table {
+        color: var(--text-primary) !important;
+    }
+    table.table th {
+        border-bottom: 1px solid var(--border-color) !important;
+        color: var(--text-secondary) !important;
+        text-transform: uppercase !important;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.05em !important;
+    }
+    table.table td {
+        border-bottom: 1px solid var(--border-color) !important;
+        vertical-align: middle !important;
+    }
+    .tab-content {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 0 12px 12px 12px !important;
+    }
+    .nav-tabs {
+        border-bottom-color: var(--border-color) !important;
+    }
+    .nav-tabs > li > a {
+        color: var(--text-secondary) !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    .nav-tabs > li.active > a {
+        color: var(--accent-blue) !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-bottom-color: var(--bg-card) !important;
+    }
+    .nav-tabs > li > a:hover {
+        color: var(--text-primary) !important;
+        background: rgba(59,130,246,0.08) !important;
+    }
+    .form-control, select, textarea, input[type="text"], input[type="url"], input[type="email"] {
+        background: var(--bg-dark) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 8px !important;
+    }
+    .form-control:focus {
+        border-color: var(--accent-blue) !important;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.2) !important;
+    }
+    .alert {
+        border-radius: 8px !important;
+    }
+    .alert-success {
+        background: rgba(34,197,94,0.15) !important;
+        border-color: rgba(34,197,94,0.3) !important;
+        color: #4ade80 !important;
+    }
+    .alert-danger {
+        background: rgba(239,68,68,0.15) !important;
+        border-color: rgba(239,68,68,0.3) !important;
+        color: #f87171 !important;
+    }
+    .alert-info {
+        background: rgba(59,130,246,0.15) !important;
+        border-color: rgba(59,130,246,0.3) !important;
+        color: #60a5fa !important;
+    }
+    .alert-warning {
+        background: rgba(234,179,8,0.15) !important;
+        border-color: rgba(234,179,8,0.3) !important;
+        color: #facc15 !important;
+    }
+    .dropdown-menu {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    .dropdown-menu > li > a {
+        color: var(--text-primary) !important;
+    }
+    .dropdown-menu > li > a:hover {
+        background: rgba(59,130,246,0.08) !important;
+    }
+    hr {
+        border-top-color: var(--border-color) !important;
+    }
+    a {
+        color: var(--accent-blue) !important;
+    }
+    a:hover {
+        color: #60a5fa !important;
+    }
+    code {
+        color: #f472b6 !important;
+        background: rgba(244,114,182,0.1) !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+    }
+    .str {
+        color: #4ade80 !important;
+    }
+    .lit, .num {
+        color: #facc15 !important;
+    }
+    .pln, .pun {
+        color: var(--text-primary) !important;
+    }
+    .atn {
+        color: #60a5fa !important;
+    }
+    .atv {
+        color: #f472b6 !important;
+    }
+    .tag {
+        color: #f87171 !important;
+    }
+    .modal-content {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    .modal-header {
+        border-bottom: 1px solid var(--border-color) !important;
+    }
+    .modal-footer {
+        border-top: 1px solid var(--border-color) !important;
+    }
+    .close {
+        color: var(--text-primary) !important;
+        text-shadow: none !important;
+        opacity: 0.7 !important;
+    }
+    .close:hover {
+        opacity: 1 !important;
+    }
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<body class="container-fluid" style="padding-top: 70px;">
+    <div class="wrapper">
+        {% block navbar %}
+        <nav class="navbar navbar-default navbar-fixed-top" style="background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color);">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="/" style="color: var(--text-primary); font-weight: 700;">
+                        <i class="fas fa-server" style="color: var(--accent-blue); margin-right: 8px;"></i> InfraBase API
+                    </a>
+                    <a class="navbar-link" href="/" style="color: var(--text-secondary); margin-left: 15px;">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><span class="navbar-text" style="color: var(--text-secondary);">{{ request.method }} {{ request.path }}</span></li>
+                </ul>
+            </div>
+        </nav>
+        {% endblock %}
+
+        {% block content %}
+        <div class="container-fluid" style="padding: 20px;">
+            {% block breadcrumbs %}
+            <ul class="breadcrumb" style="background: transparent; padding: 0; margin-bottom: 15px;">
+                {% for breadcrumb_name, breadcrumb_url in breadcrumblist %}
+                <li{% if forloop.last %} class="active"{% endif %} style="color: var(--text-secondary);">
+                    {% if breadcrumb_url %}<a href="{{ breadcrumb_url }}" style="color: var(--accent-blue);">{{ breadcrumb_name }}</a>{% else %}{{ breadcrumb_name }}{% endif %}
+                    {% if not forloop.last %}<span class="divider" style="color: var(--text-secondary); margin: 0 5px;">/</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endblock %}
+
+            <!-- Title -->
+            <div class="page-header">
+                <h1>{{ view.get_title|default:title }}</h1>
+                {% if view.description %}<p class="text-muted" style="color: var(--text-secondary); margin-top: 8px;">{{ view.description }}</p>{% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    {% block request_forms %}
+                    <form id="get-form" class="pull-right">
+                        <fieldset>
+                            <div class="btn-group format-selection">
+                                <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                    Format <b class="caret"></b>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="?format=api">API</a></li>
+                                    <li><a href="?format=json">JSON</a></li>
+                                </ul>
+                            </div>
+                        </fieldset>
+                    </form>
+                    {% endblock %}
+
+                    {% block content_main %}
+                    <div class="well" style="margin-top: 20px;">
+                        <div class="main-content">
+                            {% block description %}{% endblock %}
+                            {% block request_actions %}{% endblock %}
+                            {% block content_inner %}{% endblock %}
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+
+    {% block script %}
+    <script>
+        window.drf = {
+            csrfHeaderName: "{{ csrf_header_name|default:'X-CSRFToken' }}",
+            csrfToken: "{% if request %}{{ csrf_token }}{% endif %}"
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    {% endblock %}
+</body>
+{% endblock %}

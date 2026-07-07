@@ -55,24 +55,24 @@ pipeline {
                       -e DB_PASS=supersecretpassword \
                       -e FLASK_AI_URL=http://infrabase_flask_ai:5001 \
                       --network web_network \
-                      ${IMAGE_NAME}:latest
+                      $IMAGE_NAME:latest
                     
-                    # Connect Django to the internal network so it can reach MySQL and Flask AI
+                    # Connect Django to the internal network
                     docker network connect infrabase_internal infrabase_app || true
                     
                     # Wait for MySQL to be ready before running migrations
                     echo "Waiting for MySQL to be ready..."
                     for i in $(seq 1 30); do
                         docker exec infrabase_app python -c "
-import MySQLdb
-try:
-    MySQLdb.connect(host='infrabase_db', user='infrabase_user', passwd='supersecretpassword', db='infrabase_db')
-    print('MySQL is ready!')
-    exit(0)
-except Exception as e:
-    print(f'Waiting for MySQL... ({e})')
-    exit(1)
-" 2>/dev/null && break
+                    import MySQLdb
+                    try:
+                        MySQLdb.connect(host='infrabase_db', user='infrabase_user', passwd='supersecretpassword', db='infrabase_db')
+                        print('MySQL is ready!')
+                        exit(0)
+                    except Exception as e:
+                        print(f'Waiting for MySQL... ({e})')
+                        exit(1)
+                    " 2>/dev/null && break
                         sleep 2
                     done
                     
